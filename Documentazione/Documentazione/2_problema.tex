@@ -2,7 +2,7 @@ Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzio
 
 \section{Specifica PEAS}
     \subsubsection{Performance}
-        La misura di performance dell'agente è direttamente legata alla percezione che un utente avrebbe dei giochi presenti nello stesso cluster. Possiamo pensare di implementare ciò tramite \textbf{reinforcement learning}. Nonostante ciò sia difficile all'interno del sotto-modulo, possiamo pensare all'interazione con il sistema in cui esso verrà implementato; se un utente recensisce positivamente un gioco consigliato da GameDelogger sulla piattaforma ospite, questo varrà come feedback positivo, e viceversa.
+        La misura di performance dell'agente è direttamente legata alla percezione che un utente avrebbe dei giochi considerati dal sottomodulo come simili, introducendo quindi un certo grado di soggettività. Possiamo pensare di implementare ciò tramite \textbf{reinforcement learning}. Nonostante ciò sia difficile all'interno del sotto-modulo, possiamo pensare all'interazione con il sistema in cui esso verrà implementato; se un utente recensisce positivamente un gioco consigliato da GameDelogger sulla piattaforma ospite, questo varrà come feedback positivo, e viceversa. Questa soluzione resta fuori dallo scope del progetto in quanto servirebbe un feedback costante da parte di un bacino d'utenza di cui non disponiamo. In maniera simile, nemmeno un dataset siffatto non esiste.
         
     \subsubsection{Environment}
         L'ambiente in cui l'agente opera è composto dai giochi disponibili e tutte le informazioni relative a essi che abbiamo a disposizione. L'ambiente è:
@@ -11,17 +11,17 @@ Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzio
             \item \textbf{Deterministico}, in quanto i cluster da individuare dipendono da caratteristiche del gioco definite a priori e non soggette ad alcun tipo di casualità.
             \item \textbf{Sequenziale}, in quanto le azioni dell'agente hanno potenzialità di influenzare le scelte dell'utente, che a loro volta creeranno uno stato diverso per l'agente.
             \item \textbf{Statico}, in quanto l'agente considera il backlog come una lista di elementi non soggetta a mutazioni nel mentre delibera.
-            \item \textbf{Discreto}, in quanto abbiamo un numero discreto di possibili raggruppamenti.
+            \item \textbf{Discreto}, in quanto abbiamo un numero discreto di possibili giochi da consigliare.
             \item A \textbf{singolo agente}, in quanto la presenza di più agenti sarebbe superflua.
         \end{itemize}
         
     \subsubsection{Actuators}
-        Creazione di gruppi di giochi simili fra loro.
+        Creazione e restituzione di uno o più giochi ritenuti rilevanti.
         
     \subsubsection{Sensors}
         I sensori dell'agente gli permettono di ottenere tutte le informazioni relative al backlog e ai giochi in esso contenuti.
         
-\section{Analisi del problema e soluzione proposta}
+\section{Analisi del problema}
     Dopo aver analizzato l'ambiente, ci rendiamo conto che è molto importante definire con precisione l'entità del \textbf{gioco}, per metterlo in qualche tipo di relazione con gli altri giochi.
     
     \subsection{Il gioco}
@@ -38,26 +38,13 @@ Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzio
             \item \textbf{Anno di pubblicazione}
         \end{itemize}
         
-    \subsection{L'algoritmo da usare}
-        L'idea è di usare un algoritmo \textit{partizionale} ed \textit{esclusivo}.
-        
-        Potrebbe inoltre essere sia \textit{agglomerativo} che \textit{divisivo}, senza troppo impatto sul risultato finale. Tuttavia dobbiamo considerare che questo modulo andrà implementato in un progetto più grande, che prevede di consigliare un gioco a un utente. Possiamo quindi immaginare l'utilità di un algoritmo di tipo \textbf{agglomerativo}: potremmo pensare di creare un circondario dell'elemento atomico che è l'ultimo gioco giocato e fermarci a una certa soglia, quindi non prendendo in considerazione giochi molto distanti. Per lo stesso motivo, sarebbe preferibile un algoritmo \textbf{seriale}; elaborare tutti i pattern contemporaneamente non serve se alcuni di loro non verranno nemmeno considerati. L'unione di queste due considerazioni, unite con il fatto che il dataset di giochi presi in considerazione potrebbe essere di dimensioni considerevoli, potrebbe migliorare di molto le performance del modulo.
-        
-        Date queste informazioni, e usando come riferimento gli algoritmi messi a disposizione da \texttt{scikit-learn}, un buon candidato è l'algoritmo \texttt{DBSCAN}, in particolare per il fatto che si comporta bene con cluster poco omogenei e non considera gli \textit{outliers}. Questo nel nostro caso è utile, in quanto è possibile nonché probabile che:
-        \begin{enumerate}
-            \item Ci siano giochi molto generici e quindi appartenenti a cluster più grandi, e giochi facenti parte di nicchie ristrette, appartenenti quindi a cluster minori.
-            
-            \item Ci siano giochi molto particolari e in definitiva dissimili da qualsiasi altro gioco presente nel dataset.
-        \end{enumerate}
-        
-        Una cosa da notare è che avremo bisogno di definire una distanza fra oggetti personalizzati, in quanto non tutti i nostri parametri sono esprimibili numericamente; in particolare, la corrispondenza fra generi e la corrispondenza fra sviluppatori sono definite come uguaglianza fra stringhe.
-        
-        L'algoritmo ovviamente richiede dei dati in input, che andranno estratti ed elaborati. Andiamo dunque a discutere il dataset.
+        Questi dati devono chiaramente essere estratti e organizzati, operazioni che andiamo di seguito a documentare.
         
 \section{Dataset}
     \subsection{Scelta e ottenimento del dataset}
         L'idea è quella di raccogliere le informazioni di un certo numero di giochi dal sito \url{www.howlongtobeat.com}. Per fare ciò ci siamo avvalsi dell'utilizzo di un estensione browser per effettuare il web scraping del sito web precedentemente citato, ricavando da esso gli attributi necessari per il nostro scopo, quali: il nome del gioco, il tempo di completamento, il/i genere/i, la casa di sviluppo e l'anno di pubblicazione. Da questa operazione abbiamo ricavato un dataset semi-strutturato di 200 titoli.
         
+        \newpage
         Esso sarà quindi in formato CVS e avrà una tale struttura:
         \begin{table}[h]
             \begin{tabular}{|c|c|c|c|c|}
@@ -71,16 +58,39 @@ Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzio
         
     \subsection{Data preparation}
     
-        \paragraph{Pre-processing}
+        \subsubsection{Pre-processing}
             L'unica operazione di pre-processing da fare è sul tempo: esso è espresso nel formato "numero di ore + $\frac{1}{2}$ (opzionale) + Hours", mentre a noi interessa un formato del tipo "numero di ore + .5(opzionale)". È Solo necessario, quindi, rimuovere la stringa "Hours" e trasformare $\frac{1}{2}$ in .5 quando presente.
         
         \subsubsection{Data Cleaning}
             Per una piccola quantità di giochi nel sito manca il genere o anche se c'è non è stato rilevato dallo scraping. Stesso discorso per il tempo, dato che alcuni titoli presenti sul sito avevano a disposizione solo una categoria di tempo, essa non veniva rilevata dallo scraper che prendeva solo una tipologia specifica di tempo. Vi sono varie possibili soluzioni per riempire le celle mancanti, quali: eseguire una ricerca incrociata con altri siti come per esempio lo stesso Wikipedia, il quale riporta il genere di molti giochi; intervenire umanamente ricontrollando \url{www.howlongtobeat.com}, o se si è a conoscenza del titolo aggiungerlo autonomamente.
             
         \subsubsection{Feature Scaling}
-            Il tempo di gioco e l'anno di pubblicazione verranno normalizzati secondo la \textit{z-score normalization}.
-            
-            La corrispondenza dello sviluppatore e dei generi sarà un valore fissato che verrà aggiunto in caso di corrispondenza fra le stringhe interessate.
+            Il tempo di gioco verrà normalizzato secondo la \textbf{min-max normalization}. Questo tipo di normalizzazione è stato scelto perché inquadra solo il periodo di tempo in cui un gioco è stato rilasciato, senza considerarne la distribuzione, dato che non ci interessa, come per esempio farebbe la \textit{z-score normalization}. Alcuni esempi di questo tipo di normalizzazione sono riportati di seguito.
+            \begin{center}
+                \begin{tabular}{|c|c|}
+                \hline
+                $x$  & $x_{norm}$ \\ \hline
+                1985 & 0.05     \\ \hline
+                1997 & 0.36     \\ \hline
+                2006 & 0.59     \\ \hline
+                2012 & 0.74     \\ \hline
+                2022 & 1.00     \\ \hline
+                \end{tabular}
+            \end{center}
+        
+            \newpage
+            Se per l'anno di rilascio la distribuzione non ci interessa, per la durata è importante, in quanto descrive tendenze di mercato rilevanti. Del resto, un gioco è considerato "lungo" o "corto" anche in base alla durata media degli altri giochi. Per questo motivo abbiamo scelto la \textit{z-score normalization}, di cui riportiamo alcuni valori di seguito. Sul dataset ottenuto tramite web scraping abbiamo calcolato un valore della media della distribuzione $\bar{x} = 36.32$ e un valore di distribuzione standard $\sigma = 51.43$.
+            \begin{center}
+                \begin{tabular}{|c|c|}
+                \hline
+                $x$  & $x_{znorm}$ \\ \hline
+                10 & -0.51176     \\ \hline
+                15.5 & -0.40482     \\ \hline
+                22 & -0.27844     \\ \hline
+                51.5 & 0.28544     \\ \hline
+                80 & 0.84931     \\ \hline
+                \end{tabular}
+            \end{center}
             
         \subsubsection{Feature Selection}
             La selezione dei dati appropriati è stata già discussa in precedenza, ma andiamo ora a motivare ed elaborare il perché di queste scelte.
@@ -91,7 +101,7 @@ Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzio
                 
                 \item \textbf{Tempo di completamento:} Nonostante non sia una feature determinante della similarità fra giochi, molti utenti tendono a preferire giochi di durata simile, sia per gusto personale che per quantità di tempo a disposizione. Un'altra feature che potrebbe essere importante è per esempio la durata media di una sessione di gioco, a prescindere dalla durata dello stesso. Nonostante la questione sia interessante, resta aperta a causa di una mancanza totale di un tale dataset o API che permettano di reperire tali informazioni.
                 
-                \item \textbf{Genere:} È il metro di similarità più importante per noi, essendo quello che descrive meglio il contenuto del gioco. Un'analisi di mercato sarebbe utile a definire la similarità fra generi, ma per ora ci siamo limitati a definirla in base al numero di generi in comune messo in relazione con il numero di generi totali.
+                \item \textbf{Genere:} È il metro di similarità più importante per noi, essendo quello che descrive meglio il contenuto del gioco. Un'analisi di mercato sarebbe utile a definire la similarità fra generi, ma per ora ci siamo limitati a definirla in base al numero di generi in comune fra i due giochi.
                 
                 \item \textbf{Developer:} Abbiamo preso in considerazione l'impronta artistica e stilistica che il team di sviluppo ha su un determinato gioco come dato importante.
                 
@@ -100,7 +110,7 @@ Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzio
             
             Andiamo ora a vedere alcuni dei dati che non abbiamo preso in considerazione nonostante fossero presenti su \url{www.hoelongtobeat.com}, il perché e il se potrebbero essere usati in sviluppi futuri del progetto:
             \begin{itemize}
-                \item \textbf{Piattaforme di pubblicazione:} In passato la piattaforma di appartenenza di un gioco era rilevante, in quanto diverse compagnie implementavano diverse politiche e addirittura tecnologie per le loro console. Tuttavia oggi queste differenze si sono appiattite molto e tutte le console hanno tecnologie e prestazioni molto simili. Forse più importante, questo modulo è pensato per essere implementato su un servizio come Playstation Now, Microsoft GamePass, Steam, etc. Chiaramente in questi casi la piattaforma è implicata implicitamente, e sarebbe informazione ridondante.
+                \item \textbf{Piattaforme di pubblicazione:} In passato la piattaforma di appartenenza di un gioco era rilevante, in quanto diverse compagnie implementavano diverse politiche e addirittura diverse tecnologie per le loro console. Tuttavia oggi queste differenze si sono appiattite molto e tutte le console hanno tecnologie e prestazioni molto simili. Forse più importante, questo modulo è pensato per essere implementato su un servizio come Playstation Now, Microsoft GamePass, Steam, etc. Chiaramente in questi casi la piattaforma è implicata, e sarebbe informazione ridondante.
                 
                 \item \textbf{Publisher:} Questa è la casa di pubblicazione di un videogioco. Molto raramente i giochi pubblicati dalla stessa casa hanno similarità stilistiche, in quanto queste sono definite piuttosto dal team di sviluppo.
                 
@@ -108,4 +118,4 @@ Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzio
             \end{itemize}
             
         \subsubsection{Data Balancing}
-            Siccome ogni gioco è unico, non abbiamo riscontrato necessità di eseguire un bilanciamento dei dati su questo particolare dataset. Inoltre c'è da dire che \textbf{ci aspettiamo} un certo sbilanciamento in un problema del genere, cosa notata durante lo studio di fattibilità e consolidata dalla scelta di usare un algoritmo come \texttt{DBSCAN} che funziona particolarmente bene con cluster non omogenei.
+            Siccome ogni gioco è unico, non abbiamo riscontrato necessità di eseguire un bilanciamento dei dati su questo particolare dataset. Inoltre c'è da dire che \textbf{ci aspettiamo} un certo sbilanciamento in un problema del genere, cosa notata durante lo studio di fattibilità.

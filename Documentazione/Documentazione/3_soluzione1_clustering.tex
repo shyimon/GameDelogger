@@ -1,111 +1,29 @@
-Abbiamo pensato di risolvere il problema del definire un grado di similarità fra giochi tramite \textbf{regressione}, e basandoci su caratteristiche dei titoli in questione come il genere, la durata e la valutazione media degli utenti.
+\section{Motivazioni e risultati attesi}
+    Una prima idea era quella di formare raggruppamenti di giochi simili tramite un algoritmo di clustering. Questa soluzione si adattava abbastanza bene inoltre al modulo principale del progetto, in quanto avremmo potuto restituire all'utente giochi casuali di un cluster più o meno grande. Difatti non ci interessa consigliare all'utente il gioco più simile in assoluto agli ultimi giocati, in quanto ciò potrebbe portare una certa noia e ridondanza, e quindi risultati poco graditi.
 
-\section{Specifica PEAS}
-    \subsubsection{Performance}
-        La misura di performance dell'agente è direttamente legata alla percezione che un utente avrebbe dei giochi presenti nello stesso cluster. Possiamo pensare di implementare ciò tramite \textbf{reinforcement learning}. Nonostante ciò sia difficile all'interno del sotto-modulo, possiamo pensare all'interazione con il sistema in cui esso verrà implementato; se un utente recensisce positivamente un gioco consigliato da GameDelogger sulla piattaforma ospite, questo varrà come feedback positivo, e viceversa.
+\section{L'algoritmo da usare}
+    L'idea è di usare un algoritmo \textit{partizionale} ed \textit{esclusivo}.
         
-    \subsubsection{Environment}
-        L'ambiente in cui l'agente opera è composto dai giochi disponibili e tutte le informazioni relative a essi che abbiamo a disposizione. L'ambiente è:
-        \begin{itemize}
-            \item \textbf{Completamente osservabile}, in quanto abbiamo accesso a tutte le informazioni relative a ogni singolo titolo in qualsiasi momento.
-            \item \textbf{Deterministico}, in quanto i cluster da individuare dipendono da caratteristiche del gioco definite a priori e non soggette ad alcun tipo di casualità.
-            \item \textbf{Sequenziale}, in quanto le azioni dell'agente hanno potenzialità di influenzare le scelte dell'utente, che a loro volta creeranno uno stato diverso per l'agente.
-            \item \textbf{Statico}, in quanto l'agente considera il backlog come una lista di elementi non soggetta a mutazioni nel mentre delibera.
-            \item \textbf{Discreto}, in quanto abbiamo un numero discreto di possibili raggruppamenti.
-            \item A \textbf{singolo agente}, in quanto la presenza di più agenti sarebbe superflua.
-        \end{itemize}
+    Potrebbe inoltre essere sia \textit{agglomerativo} che \textit{divisivo}, senza troppo impatto sul risultato finale. Tuttavia dobbiamo considerare che questo modulo andrà implementato in un progetto più grande, che prevede di consigliare un gioco a un utente. Possiamo quindi immaginare l'utilità di un algoritmo di tipo \textbf{agglomerativo}: potremmo pensare di creare un circondario dell'elemento atomico che è l'ultimo gioco giocato e fermarci a una certa soglia, quindi non prendendo in considerazione giochi molto distanti. Per lo stesso motivo, sarebbe preferibile un algoritmo \textbf{seriale}; elaborare tutti i pattern contemporaneamente non serve se alcuni di loro non verranno nemmeno considerati. L'unione di queste due considerazioni, unite con il fatto che il dataset di giochi presi in considerazione potrebbe essere di dimensioni considerevoli, potrebbe migliorare di molto le performance del modulo.
         
-    \subsubsection{Actuators}
-        Creazione di gruppi di giochi simili fra loro.
+    Date queste informazioni, e usando come riferimento gli algoritmi messi a disposizione da \texttt{scikit-learn}, un buon candidato è l'algoritmo \texttt{DBSCAN}, in particolare per il fatto che si comporta bene con cluster poco omogenei e non considera gli \textit{outliers}. Questo nel nostro caso è utile, in quanto è possibile nonché probabile che:
+    \begin{enumerate}
+        \item Ci siano giochi molto generici e quindi appartenenti a cluster più grandi, e giochi facenti parte di nicchie ristrette, appartenenti quindi a cluster minori.
+            
+        \item Ci siano giochi molto particolari e in definitiva dissimili da qualsiasi altro gioco presente nel dataset.
+    \end{enumerate}
         
-    \subsubsection{Sensors}
-        I sensori dell'agente gli permettono di ottenere tutte le informazioni relative al backlog e ai giochi in esso contenuti.
+    \subsection{Problemi}
+        L'algoritmo richiede una matrice in cui le colonne rappresentano i parametri e le righe gli elementi. Nel nostro caso ciò ha creato difficoltà, in particolare per quanto riguarda i \textbf{generi}. Dobbiamo considerare che i generi sono collezioni di stringhe, e non valori numerici, da cui nasce la difficoltà nel compararli. Inoltre un singolo elemento non ha senso se preso singolarmente ma ne assume se relazionato ad altri, cosa che ci ha portato alla conclusione che la distanza fra giochi è una misura \textit{semi-metrica}, in quanto la disuguaglianza triangolare non sussiste.
         
-\section{Analisi del problema e soluzione proposta}
-    Dopo aver analizzato l'ambiente, ci rendiamo conto che è molto importante definire con precisione l'entità del \textbf{gioco}, per metterlo in qualche tipo di relazione con gli altri giochi.
+        Conseguentemente ai due problemi appena esposti, siamo arrivati alla conclusione che il carico computazionale sarebbe stato piuttosto grande, in quanto si sarebbe dovuta calcolare la distanza fra tutte le coppie di elementi, e che la misura di distanza stessa fosse danneggiata dalla presenza di paragoni fra stringhe non quantificabili in maniera numerica.
+        
+    \subsection{Soluzioni proposte}
+        Analizzando il problema del paragone fra stringhe nel contesto dei generi, abbiamo considerato vari tipi di distanza di edit fra stringhe, ma essendo la misura che interessa a noi semantica piuttosto che testuale, nessuna di queste misure hanno fatto al nostro caso. La soluzione sarebbe, molto più semplicemente, considerare quanti generi hanno in comune i due giochi, rafforzando la conclusione che un singolo gioco preso singolarmente perde di significato.
+        
+        Abbiamo preso anche in considerazione la possibilità di definire una metrica custom fra due elementi nel contesto di \texttt{scikit-learn}, cosa che non solo si è rivelata difficile, ma ci ha fatto notare che avremmo dovuto semplicemente calcolare la distanza, tramite una metrica custom, per ogni coppia di elementi, problema che sarebbe meglio risolvibile tramite tecniche di regressione, che andremo a discutere nel capitolo successivo.
     
-    \subsection{Il gioco}
-        Un oggetto \texttt{gioco} identifica univocamente un prodotto videoludico, in questo specifico caso una entry del backlog, ed è composto dai seguenti parametri:
-        \begin{itemize}
-            \item \textbf{Nome}: è una stringa che identifica il gioco. Seppur raro, due giochi diversi potrebbero avere lo stesso nome, quindi non verrà utilizzata come identificativo.
-            
-            \item \textbf{Tempo di completamento}: il tempo di completamento medio, ottenibile tramite un semplice tool di web scraping da un sito come \url{www.howlongtobeat.com}.
-          
-            \item \textbf{Genere}: definito come stringhe separate da una virgola, il genere o generi del gioco è un fattore notoriamente importante per definirne la similarità rispetto ad altri giochi.
-           
-            \item \textbf{Sviluppatore}: è in buona sostanza l'autore o gli autori del gioco. Anche esso definito come stringa. Possiamo facilmente immaginare la rilevanza di questo dato; un autore tende ad avere un'impronta artistica rilevante su tutti i giochi che crea, aumentandone il grado di similarità anche se tutti gli altri parametri previamente descritti sono poco affini.
-            
-            \item \textbf{Anno di pubblicazione}
-        \end{itemize}
-        
-    \subsection{L'algoritmo da usare}
-        L'idea è di usare un algoritmo \textit{partizionale} ed \textit{esclusivo}.
-        
-        Potrebbe inoltre essere sia \textit{agglomerativo} che \textit{divisivo}, senza troppo impatto sul risultato finale. Tuttavia dobbiamo considerare che questo modulo andrà implementato in un progetto più grande, che prevede di consigliare un gioco a un utente. Possiamo quindi immaginare l'utilità di un algoritmo di tipo \textbf{agglomerativo}: potremmo pensare di creare un circondario dell'elemento atomico che è l'ultimo gioco giocato e fermarci a una certa soglia, quindi non prendendo in considerazione giochi molto distanti. Per lo stesso motivo, sarebbe preferibile un algoritmo \textbf{seriale}; elaborare tutti i pattern contemporaneamente non serve se alcuni di loro non verranno nemmeno considerati. L'unione di queste due considerazioni, unite con il fatto che il dataset di giochi presi in considerazione potrebbe essere di dimensioni considerevoli, potrebbe migliorare di molto le performance del modulo.
-        
-        Date queste informazioni, e usando come riferimento gli algoritmi messi a disposizione da \texttt{scikit-learn}, un buon candidato è l'algoritmo \texttt{DBSCAN}, in particolare per il fatto che si comporta bene con cluster poco omogenei e non considera gli \textit{outliers}. Questo nel nostro caso è utile, in quanto è possibile nonché probabile che:
-        \begin{enumerate}
-            \item Ci siano giochi molto generici e quindi appartenenti a cluster più grandi, e giochi facenti parte di nicchie ristrette, appartenenti quindi a cluster minori.
-            
-            \item Ci siano giochi molto particolari e in definitiva dissimili da qualsiasi altro gioco presente nel dataset.
-        \end{enumerate}
-        
-        Una cosa da notare è che avremo bisogno di definire una distanza fra oggetti personalizzati, in quanto non tutti i nostri parametri sono esprimibili numericamente; in particolare, la corrispondenza fra generi e la corrispondenza fra sviluppatori sono definite come uguaglianza fra stringhe.
-        
-        L'algoritmo ovviamente richiede dei dati in input, che andranno estratti ed elaborati. Andiamo dunque a discutere il dataset.
-        
-\section{Dataset}
-    \subsection{Scelta e ottenimento del dataset}
-        L'idea è quella di raccogliere le informazioni di un certo numero di giochi dal sito \url{www.howlongtobeat.com}. Per fare ciò ci siamo avvalsi dell'utilizzo di un estensione browser per effettuare il web scraping del sito web precedentemente citato, ricavando da esso gli attributi necessari per il nostro scopo, quali: il nome del gioco, il tempo di completamento, il/i genere/i, la casa di sviluppo e l'anno di pubblicazione. Da questa operazione abbiamo ricavato un dataset semi-strutturato di 200 titoli.
-        
-        Esso sarà quindi in formato CVS e avrà una tale struttura:
-        \begin{table}[h]
-            \begin{tabular}{|c|c|c|c|c|}
-            \hline
-            \textbf{Nome} & \textbf{Tempo} & \textbf{Genere}               & \textbf{Developer} & \textbf{Anno} \\ \hline
-            Bioshock: Infinite & 15½ Hours & First Person, Shooter, Action & Irrational Games & 2013\\ \hline
-            Doom               & 6½ Hours       & First Person, Shooter         & id Software & 1993        \\ \hline
-            Final Fantasy VII  & 51 Hours       & Role-Playing                  & Square & 1997             \\ \hline
-            \end{tabular}
-        \end{table}
-        
-    \subsection{Data preparation}
+\section{Conclusioni}
+    Il nostro problema, in definitiva, non si adatta a essere risolto tramite clustering, in virtù del fatto che i parametri testuali dei nostri elementi assumono un significato e ci danno una misura di similarità solo quando rapportati a parametri testuali di altri elementi.
     
-        \paragraph{Pre-processing}
-            L'unica operazione di pre-processing da fare è sul tempo: esso è espresso nel formato "numero di ore + $\frac{1}{2}$ (opzionale) + Hours", mentre a noi interessa un formato del tipo "numero di ore + .5(opzionale)". È Solo necessario, quindi, rimuovere la stringa "Hours" e trasformare $\frac{1}{2}$ in .5 quando presente.
-        
-        \subsubsection{Data Cleaning}
-            Per una piccola quantità di giochi nel sito manca il genere o anche se c'è non è stato rilevato dallo scraping. Stesso discorso per il tempo, dato che alcuni titoli presenti sul sito avevano a disposizione solo una categoria di tempo, essa non veniva rilevata dallo scraper che prendeva solo una tipologia specifica di tempo. Vi sono varie possibili soluzioni per riempire le celle mancanti, quali: eseguire una ricerca incrociata con altri siti come per esempio lo stesso Wikipedia, il quale riporta il genere di molti giochi; intervenire umanamente ricontrollando \url{www.howlongtobeat.com}, o se si è a conoscenza del titolo aggiungerlo autonomamente.
-            
-        \subsubsection{Feature Scaling}
-            Il tempo di gioco e l'anno di pubblicazione verranno normalizzati secondo la \textit{z-score normalization}.
-            
-            La corrispondenza dello sviluppatore e dei generi sarà un valore fissato che verrà aggiunto in caso di corrispondenza fra le stringhe interessate.
-            
-        \subsubsection{Feature Selection}
-            La selezione dei dati appropriati è stata già discussa in precedenza, ma andiamo ora a motivare ed elaborare il perché di queste scelte.
-            
-            Ecco dunque le caratteristiche da noi scelte o costruite e il perché le riteniamo utili:
-            \begin{itemize}
-                \item \textbf{Nome:} Non ha rilevanza per quanto riguarda l'algoritmo, ma è utile per mostrare a video i nostri risultati.
-                
-                \item \textbf{Tempo di completamento:} Nonostante non sia una feature determinante della similarità fra giochi, molti utenti tendono a preferire giochi di durata simile, sia per gusto personale che per quantità di tempo a disposizione. Un'altra feature che potrebbe essere importante è per esempio la durata media di una sessione di gioco, a prescindere dalla durata dello stesso. Nonostante la questione sia interessante, resta aperta a causa di una mancanza totale di un tale dataset o API che permettano di reperire tali informazioni.
-                
-                \item \textbf{Genere:} È il metro di similarità più importante per noi, essendo quello che descrive meglio il contenuto del gioco. Un'analisi di mercato sarebbe utile a definire la similarità fra generi, ma per ora ci siamo limitati a definirla in base al numero di generi in comune messo in relazione con il numero di generi totali.
-                
-                \item \textbf{Developer:} Abbiamo preso in considerazione l'impronta artistica e stilistica che il team di sviluppo ha su un determinato gioco come dato importante.
-                
-                \item \textbf{Anno di pubblicazione:} Questo è un altro dato che non ci dice molto sul contenuto del gioco, ma che abbiamo ritenuto importante a causa dei grandi cambiamenti che il mercato videoludico ha subito dalla sua nascita. Gli avanzamenti tecnologici hanno portato a un importante cambiamento stilistico nello sviluppo di videogiochi, e le persone tendono a identificarsi con una determinata era videoludica che hanno particolarmente a cuore, motivo per cui abbiamo ritenuto questo dato rilevante.
-            \end{itemize}
-            
-            Andiamo ora a vedere alcuni dei dati che non abbiamo preso in considerazione nonostante fossero presenti su \url{www.hoelongtobeat.com}, il perché e il se potrebbero essere usati in sviluppi futuri del progetto:
-            \begin{itemize}
-                \item \textbf{Piattaforme di pubblicazione:} In passato la piattaforma di appartenenza di un gioco era rilevante, in quanto diverse compagnie implementavano diverse politiche e addirittura tecnologie per le loro console. Tuttavia oggi queste differenze si sono appiattite molto e tutte le console hanno tecnologie e prestazioni molto simili. Forse più importante, questo modulo è pensato per essere implementato su un servizio come Playstation Now, Microsoft GamePass, Steam, etc. Chiaramente in questi casi la piattaforma è implicata implicitamente, e sarebbe informazione ridondante.
-                
-                \item \textbf{Publisher:} Questa è la casa di pubblicazione di un videogioco. Molto raramente i giochi pubblicati dalla stessa casa hanno similarità stilistiche, in quanto queste sono definite piuttosto dal team di sviluppo.
-                
-                \item \textbf{Altri tempi di completamento:} Il sito da noi preso in considerazione ha tempi di completamento per la campagna principale, la campagna + gli extra (quello da noi preso in considerazione) e il completamento del gioco al 100\%. Le altre due categorie potrebbero essere molto utili per alcune piattaforme come Steam o Xbox, o qualsiasi altro servizio che fornisca la percentuale di completamento di un gioco per un determinato utente. Possiamo immaginare infatti di dare più peso al tempo di completamento del gioco al 100\% se notiamo che l'utente tende a completare molti giochi al 100\%.
-            \end{itemize}
-            
-        \subsubsection{Data Balancing}
-            Siccome ogni gioco è unico, non abbiamo riscontrato necessità di eseguire un bilanciamento dei dati su questo particolare dataset. Inoltre c'è da dire che \textbf{ci aspettiamo} un certo sbilanciamento in un problema del genere, cosa notata durante lo studio di fattibilità e consolidata dalla scelta di usare un algoritmo come \texttt{DBSCAN} che funziona particolarmente bene con cluster non omogenei.
+    La definizione di una distanza custom, nonostante sembrasse fattibile all'inizio, introduce una causa di grave inefficienza in quanto dovrebbe essere calcolata fra ogni coppia di elementi. Diverrebbe inoltre un elemento troppo centrale dell'intero algoritmo, sorpassando addirittura i raggruppamenti e rendendoli superflui.
