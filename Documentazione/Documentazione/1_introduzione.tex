@@ -1,0 +1,11 @@
+\section{Il contesto}
+Questo progetto nasce dall'esistenza del cosiddetto \textbf{backlog} nel mondo dei videogiochi e dei videogiocatori, ossia una lista di giochi posseduti ma non ancora giocati, che si sono accumulati nel corso del tempo.
+
+\section{La nostra idea}
+La nostra proposta è quella di consigliare uno o più giochi al giocatore, prendendoli dal suo backlog, in base ai suoi gusti, ai giochi recentemente giocati e alla maniera in cui consuma tale prodotto ludico. Non è difficile immaginare un modulo siffatto implementato in sistemi come Backloggd, Steam o GOG.
+    \subsection{I primi problemi e il cambio di direzione}
+        Durante una prima sessione di brainstorming è subito spuntato un grosso problema: per identificare il prossimo gioco da giocare, sarebbe stata necessaria una misura di similarità fra i giochi, così da collegare i candidati ai giochi precedentemente graditi dall'utente. Questo, di per sé, è un problema non banale. Abbiamo quindi deciso di concentrarci sul definire un sotto-modulo di GameDelogger, in particolare quello che individua una misura similarità fra coppie di giochi.
+    
+        Dopo aver studiato approfonditamente l'ambiente e in particolare dopo aver ottenuto e analizzato il dataset, siamo arrivati alla conclusione che questo problema non richiede necessariamente algoritmi di intelligenza artificiale. Ciò non vuol dire che un algoritmo di intelligenza artificiale non possa adattarsi al sottomodulo, e non vuol dire che una soluzione orientata all'intelligenza artificiale non sia adatta al modulo completo. Tuttavia, le soluzioni desiderabili sono fuori dallo scope di questo progetto e dalle nostre competenze, lasciandoci in un limbo nel quale le soluzioni realizzabili sarebbero \textit{overkill} per il problema, mentre quelle adatte sono fuori dalle nostre competenze.
+        
+        \textbf{In definitiva}, questo documento riporta il nostro processo di lavoro, le soluzioni proposte con relative motivazioni e conclusioni.
