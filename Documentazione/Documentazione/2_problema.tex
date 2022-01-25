@@ -1,4 +1,4 @@
-Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzione di questo problema, abbiamo deciso di lavorare innanzitutto sulla definizione dello stesso e sulla raccolta dei dati. Queste sono fasi fondamentali, e comprendere a fondo il problema con cui abbiamo a che fare è un passo indispensabile che prescinde dall'algoritmo usato.
+    Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzione di questo problema, abbiamo deciso di lavorare innanzitutto sulla definizione dello stesso e sulla raccolta dei dati. Queste sono fasi fondamentali, e comprendere a fondo il problema con cui abbiamo a che fare è un passo indispensabile che prescinde dall'algoritmo usato.
 
 \section{Specifica PEAS}
     \subsubsection{Performance}
@@ -65,7 +65,7 @@ Avendo un certo grado di incertezza sull'algoritmo da impiegare per la risoluzio
             Per una piccola quantità di giochi nel sito manca il genere o anche se c'è non è stato rilevato dallo scraping. Stesso discorso per il tempo, dato che alcuni titoli presenti sul sito avevano a disposizione solo una categoria di tempo, essa non veniva rilevata dallo scraper che prendeva solo una tipologia specifica di tempo. Vi sono varie possibili soluzioni per riempire le celle mancanti, quali: eseguire una ricerca incrociata con altri siti come per esempio lo stesso Wikipedia, il quale riporta il genere di molti giochi; intervenire umanamente ricontrollando \url{www.howlongtobeat.com}, o se si è a conoscenza del titolo aggiungerlo autonomamente.
             
         \subsubsection{Feature Scaling}
-            Il tempo di gioco verrà normalizzato secondo la \textbf{min-max normalization}. Questo tipo di normalizzazione è stato scelto perché inquadra solo il periodo di tempo in cui un gioco è stato rilasciato, senza considerarne la distribuzione, dato che non ci interessa, come per esempio farebbe la \textit{z-score normalization}. Alcuni esempi di questo tipo di normalizzazione sono riportati di seguito.
+           l'anno di rilascio verrà normalizzato secondo la \textbf{min-max normalization}. Questo tipo di normalizzazione è stato scelto perché inquadra solo il periodo di tempo in cui un gioco è stato rilasciato, senza considerarne la distribuzione, dato che non ci interessa, come per esempio farebbe la \textit{z-score normalization}. Alcuni esempi di questo tipo di normalizzazione sono riportati di seguito.
             \begin{center}
                 \begin{tabular}{|c|c|}
                 \hline
