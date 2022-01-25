@@ -14,7 +14,7 @@
     \end{enumerate}
         
     \subsection{Problemi}
-        L'algoritmo richiede una matrice in cui le colonne rappresentano i parametri e le righe gli elementi. Nel nostro caso ciò ha creato difficoltà, in particolare per quanto riguarda i \textbf{generi}. Dobbiamo considerare che i generi sono collezioni di stringhe, e non valori numerici, da cui nasce la difficoltà nel compararli. Inoltre un singolo elemento non ha senso se preso singolarmente ma ne assume se relazionato ad altri, cosa che ci ha portato alla conclusione che la distanza fra giochi è una misura \textit{semi-metrica}, in quanto la disuguaglianza triangolare non sussiste.
+        L'algoritmo richiede una matrice in cui le colonne rappresentano i parametri e le righe gli elementi. Nel nostro caso ciò ha creato difficoltà, in particolare per quanto riguarda i \textbf{generi}. Dobbiamo considerare che i generi sono collezioni di stringhe, e non valori numerici, da cui nasce la difficoltà nel compararli. Inoltre un singolo elemento non ha senso se preso singolarmente ma ne assume se relazionato ad altri, cosa che ci ha portato alla conclusione che la distanza fra giochi è una misura \textit{semi-metrica}, in quanto la disuguaglianza triangolare non sussiste. 
         
         Conseguentemente ai due problemi appena esposti, siamo arrivati alla conclusione che il carico computazionale sarebbe stato piuttosto grande, in quanto si sarebbe dovuta calcolare la distanza fra tutte le coppie di elementi, e che la misura di distanza stessa fosse danneggiata dalla presenza di paragoni fra stringhe non quantificabili in maniera numerica.
         
