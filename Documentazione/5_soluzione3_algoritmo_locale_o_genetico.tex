@@ -1,0 +1,27 @@
+\section{Il passaggio da un problema di apprendimento ad uno di ricerca}
+    Scartato in un primo momento il clustering, il modello di regressione sembrava essere quello più adatto alla risoluzione del problema. Il principale limite, come già menzionato, è l'assenza di valori noti a priori che possano quindi indirizzare il problema verso un corretto uso dell'algoritmo di apprendimento. Mancando la parte vera e propria di "apprendimento" il risultato è una semplice equazione andando fuori dallo scope del progetto, quello di risolvere il problema tramite un algoritmo di Intelligenza Artificiale. 
+    
+    Rimanendo dentro il tema farebbe molto comodo utilizzare la \textbf{ricerca locale}, in quanto: il nostro modulo deve principalmente restituire dei \textit{giochi simili} all'ultimo gioco gradito dall'utente oppure contrariamente può restituire dei giochi completamente diversi nel caso in cui l'ultimo gioco non è stato particolarmente gradito e implicitamente quindi si potrebbe desiderare un'esperienza diversa.
+    
+    Definizione di \textit{gioco simile} o \textit{gioco opposto} coincide a meraviglia con i concetti di \textbf{massimo globale} e \textbf{minimo globale} che a seconda di ciò che l'algoritmo desidera trovare corrisponderà al \textbf{ottimo globale}. Per il problema preso in analisi può essere addirittura vantaggioso accontentarsi di \textbf{ottimi locali}, così da restituire non un solo gioco ma un insieme di essi più simili o dissimili all'ultimo giocato.
+    
+    \section{L'algoritmo da usare}
+    \subsection{Algoritmo Genetico Multi Obiettivo}
+    Il nostro problema può adattarsi ad un utilizzo di un \textbf{algoritmo genetico}: definire una meta-euristica per stabilire quali individui tra una \textit{popolazione} di giochi (nel nostro caso il backlog) possa essere più vicina all'ultimo gioco giocato dall'utente.
+    
+    I giochi hanno più di un parametro fondamentale come specificato nella nostra Analisi del problema, quindi la nostra meta-euristica dovrà tener conto di più di un obiettivo da massimizzare. Andiamo quindi incontro ad un \textbf{problema Multi Obiettivo}.
+    \paragraph{Approccio ideale e Fronte di Pareto}
+    Scartiamo immediatamente un \textit{approccio classico} al problema in quanto non sarebbe fattibile definire una media pesata tra i nostri parametri, trattandosi di stringhe oltre che interi. E' un tipo di operazione molto affine alle soluzioni precedenti, che per gli stessi motivi sono state scartate.
+    
+    Non rimane quindi che adottare un \textbf{approccio ideale}: si terrà conto dei trade-off di tutte le funzioni obiettivo. L'insieme delle soluzioni non dominate andrà a formare il cosiddetto \textbf{Fronte di Pareto}, una soluzione per noi alquanto comoda perché porta con sè più di una soluzione ottima localmente come inizialmente era previsto.
+    
+    \section{Problemi}
+    Un problema non di poco conto per un'implementazione di un algoritmo genetico arriva nel momento in cui bisogna applicare le operazioni di \textit{selezione} e \textit{mutazione}. Gli individui del nostro problema sono \textbf{preesistenti}, non possono in alcun modo essere generati dei nuovi. Limitare l'algoritmo alla sola operazione di \textit{selezione} sarebbe alquanto riduttivo e di conseguenza anche l'algoritmo genetico non è congruo alla soluzione cercata.
+    
+    \section{Soluzioni proposte}
+    Una soluzione può essere sicuramente quella di regredire ad un "banale" \textbf{algoritmo di ricerca locale} affinchè trovi la soluzione ottima in uno spazio di soluzioni preesistente. Quest'ultimo, guardando attentamente il dataset, è estremamente irregolare. Torna quindi il problema della similarità tra generi e sviluppatori, che essendo stringhe rendono difficile qualsiasi tentativo di stabilire una metrica coerente. 
+    
+    Pur supponendo di riuscire a stabilire un certo grado di similarità, lo spazio delle soluzioni, per come è strutturato, rende molto difficile la possibilità dell'algoritmo di migliorare iterativamente. Non siamo riusciti a trovare un modo alternativo di formare lo spazio delle soluzioni: ad esempio la rimozione di parametri come genere e/o sviluppatore toglierebbe significato e accuratezza alla soluzione.
+    
+    \section{Conclusioni}
+    In definitiva neanche passando alla ricerca locale non è stato possibile dare una soluzione coerente e soprattuto implementabile. Quello che viene da pensare è che sia un problema che per natura non può essere risolto con l'utilizzo dell'Intelligenza Artificiale o che banalmente lo complicherebbe soltanto.

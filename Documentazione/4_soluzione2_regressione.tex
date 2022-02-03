@@ -1,0 +1,13 @@
+\section{Utilizzo di regressione multipla}
+Come risoluzione al problema si è pensato, in secondo luogo, all'utilizzo del modello di regressione multipla, utilizzando le caratteristiche del gioco come \textbf{predittori}. In questo modo si andrebbe a restituire la misura di similarità fra coppie di giochi, dandoci dunque un valore che ci aiuta a scegliere un numero definito di giochi da suggerire all'utente, dato che lo si utilizzerebbe come metrica. Da qui l'idea della metrica custom correlata alla regressione e l'idea di restituire una lista ordinata di elementi simili. La regressione ci è dunque sembrata un'idea più adatta al nostro scopo rispetto al Clustering. 
+
+
+\section{Problemi}
+Il problema principale, che abbiamo riscontrato nel momento in cui abbiamo concepito l'idea di utilizzare il modello di Regressione al posto del Clustering, è che non abbiamo i valori noti e quindi andremmo a definire una semplice equazione, eliminando l'elemento di apprendimento, rendendo di fatto inutile quindi l'utilizzo di un algoritmo di questo tipo
+
+
+\section{Soluzioni proposte}
+Come soluzione proposta si è pensato di rendere il problema con il  reinforcement learning e quindi definire la variabile dipendente gradualmente in base al feedback utente. Questo feedback però, come delineato nella sezione Performance della specifica Peas, verrà dato eventualmente da un utente sulla piattaforma che potrebbe ospitare GameDelogger, quindi per il momento non è possibile testarla nel concreto.
+
+\section{Conclusioni}
+Arrivati a questo punto si è pensato quindi di abbandonare l'idea di utilizzare un algoritmo di apprendimento e di passare all'utilizzo di algoritmi di ricerca. In particolare si è pensato di utilizzare la ricerca locale e infatti nel capitolo successivo abbiamo delineato e ampliato questa proposta.
